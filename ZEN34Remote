@@ -1,0 +1,221 @@
+blueprint:
+  name: Zooz ZEN34 Remote scene control
+  description: |
+    Use the Zooz ZEN34 remote to trigger Scenes and control devices based on varying scenes. 
+
+    This Blueprint is currently configured for the zwaveJS platform.
+
+  domain: automation
+
+  input:
+    zwave_devices:
+      name: Zooz Zen34
+      description: "List of available Zooz ZEN34 switch."
+      selector:
+        device:
+          integration: zwave_js
+          manufacturer: Zooz
+          model: ZEN34
+          multiple: true
+
+    1x_tap_up:
+      name: Tap up 1x
+      selector:
+        action:
+      default: []
+    1x_tap_down:
+      name: Tap down 1x
+      selector:
+        action:
+      default: []
+    2x_tap_up:
+      name: Tap up 2x
+      selector:
+        action:
+      default: []
+    2x_tap_down:
+      name: Tap down 2x
+      selector:
+        action:
+      default: []
+    3x_tap_up:
+      name: Tap up 3x
+      selector:
+        action:
+      default: []
+    3x_tap_down:
+      name: Tap down 3x
+      selector:
+        action:
+      default: []
+    4x_tap_up:
+      name: Tap up 4x
+      selector:
+        action:
+      default: []
+    4x_tap_down:
+      name: Tap down 4x
+      selector:
+        action:
+      default: []
+    5x_tap_up:
+      name: Tap up 5x
+      selector:
+        action:
+      default: []
+    5x_tap_down:
+      name: Tap down 5x
+      selector:
+        action:
+      default: []
+    hold_up:
+      name: Hold up
+      selector:
+        action:
+      default: []
+    is_loop_for_hold_up:
+      name: Key Up/On held loop?
+      description: Asserts whether you want to loop the held action until the button is released which could simulate the impact of a dimmer switch
+      selector:
+        boolean:
+      default: []
+    hold_down:
+      name: Hold down
+      selector:
+        action:
+      default: []
+    is_loop_for_hold_down:
+      name: Key Down/On held loop?
+      description: Asserts whether you want to loop the held action until the button is released which could simulate the impact of a dimmer switch
+      selector:
+        boolean:
+      default: []
+    key_up_released:
+      name: Key Up/On released
+      description: Action to run, when the up button is released.
+      default: []
+      selector:
+        action:
+    key_down_released:
+      name: Key Down/Off released
+      description: Action to run, when the down button is released.
+      default: []
+      selector:
+        action:
+
+mode: restart
+max_exceeded: silent
+variables:
+  logger: blueprint.zwave_scene_activation
+  device_ids: !input zwave_devices
+  key_up_scene_id: "Scene 001"
+  key_down_scene_id: "Scene 002"
+  is_loop_for_hold_up: !input "is_loop_for_hold_up"
+  is_loop_for_hold_down: !input "is_loop_for_hold_down"
+
+trigger:
+  - platform: event
+    event_type: zwave_js_value_notification
+condition: "{{ trigger.event.data.device_id in device_ids }}"
+
+action:
+  - variables:
+      scene_id: "{{trigger.event.data.label}}"
+      key_pressed: "{{trigger.event.data.value}}"
+      value_raw: "{{trigger.event.data.value_raw}}"
+  - choose:
+      # IF triggered node_id is zwave_nodeid
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.device_id in device_ids }}"
+        sequence:
+          - choose:
+              # IF 1x tap up
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_up_scene_id and (key_pressed == 'KeyPressed' or value_raw == 0) }}"
+                sequence: !input 1x_tap_up
+              # IF 1x tap down
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_down_scene_id and (key_pressed == 'KeyPressed' or value_raw == 0) }}"
+                sequence: !input 1x_tap_down
+              # IF 2x tap up
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_up_scene_id and (key_pressed == 'KeyPressed2x' or value_raw == 3) }}"
+                sequence: !input 2x_tap_up
+              # IF 2x tap down
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_down_scene_id and (key_pressed == 'KeyPressed2x' or value_raw == 3) }}"
+                sequence: !input 2x_tap_down
+              # IF 3x tap up
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_up_scene_id and (key_pressed== 'KeyPressed3x' or value_raw == 4) }}"
+                sequence: !input 3x_tap_up
+              # IF 3x tap down
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_down_scene_id and (key_pressed == 'KeyPressed3x' or value_raw == 4) }}"
+                sequence: !input 3x_tap_down
+              # IF 4x tap up
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_up_scene_id and (key_pressed== 'KeyPressed4x' or value_raw == 5) }}"
+                sequence: !input 4x_tap_up
+              # IF 4x tap down
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_down_scene_id and (key_pressed == 'KeyPressed4x' or value_raw == 5) }}"
+                sequence: !input 4x_tap_down
+              # IF 5x tap up
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_up_scene_id and (key_pressed == 'KeyPressed5x' or value_raw == 6) }}"
+                sequence: !input 5x_tap_up
+              # IF 5x tap down
+              - conditions:
+                  - condition: template
+                    value_template: "{{ scene_id == key_down_scene_id and (key_pressed == 'KeyPressed5x' or value_raw == 6) }}"
+                sequence: !input 5x_tap_down
+              - conditions:
+                  - condition: template
+                    value_template: '{{ scene_id == key_up_scene_id and (key_pressed == "KeyReleased" or value_raw == 1 ) }}'
+                sequence: !input "key_up_released"
+              - conditions:
+                  - condition: template
+                    value_template: '{{ scene_id == key_down_scene_id and (key_pressed == "KeyReleased" or value_raw == 1 ) }}'
+                sequence: !input "key_down_released"
+              - conditions:
+                  - condition: template
+                    value_template: '{{ scene_id == key_up_scene_id and (key_pressed == "KeyHeldDown" or value_raw == 2) }}'
+                sequence:
+                  # if looping is enabled, loop the action indefinitely
+                  # repeat until the automation is restarted ie. when the corresponding release message is received
+                  - repeat:
+                      sequence:
+                        !input "hold_up"
+                      until: "{{ not is_loop_for_hold_up }}"
+
+              - conditions:
+                  - condition: template
+                    value_template: '{{ scene_id == key_down_scene_id and (key_pressed == "KeyHeldDown" or value_raw == 2)}}'
+                sequence:
+                  # if looping is enabled, loop the action indefinitely
+                  # repeat until the automation is restarted ie. when the corresponding release message is received
+                  - repeat:
+                      sequence:
+                        !input "hold_down"
+                      until: "{{ not is_loop_for_hold_down }}"
+
+            # ELSE: unhandled label/value
+            default:
+              - service: system_log.write
+                data:
+                  level: debug
+                  logger: "{{ logger }}"
+                  message: "Activated scene '{{ trigger.event.data.scene_label }}' ({{ trigger.event.data.label }}) with value '{{ trigger.event.data.scene_value_label }}' ({{ trigger.event.data.value }}) for node '{{ zwave_nodeid }}' ({{ trigger.event.data.node_id }})"
+    # ELSE: unhandled zwave event
+    default: []
